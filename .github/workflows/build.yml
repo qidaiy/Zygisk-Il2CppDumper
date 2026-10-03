@@ -13,18 +13,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 改成JDK17，适配新版sdkmanager
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
+      # 更换为稳定的 setup-android
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: actions/setup-android@v3
+        with:
+          platform-tools: true
+          cmdline-tools: latest
 
       - name: Install CMake 3.18.1 & NDK
         run: |
+          yes | sdkmanager --licenses
           sdkmanager --install "cmake;3.18.1"
           sdkmanager --install "ndk;25.2.9519653"
 
