@@ -15,7 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup JDK 17
+      # 阶段1：JDK17 仅用于安装SDK工具
+      - name: Setup JDK 17 (for sdkmanager)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -37,13 +38,16 @@ jobs:
           sdkmanager --install "ndk;24.0.8215888"
           sdkmanager --install "platforms;android-33"
 
-      - name: Modify package name and Check source files
+      # 阶段2：切换JDK11 用于Gradle编译
+      - name: Setup JDK 11 (for Gradle build)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 11
+
+      - name: Modify package name
         run: |
           sed -i "s/com.game.packagename/${{ github.event.inputs.package_name }}/g" module/src/main/cpp/game.h
-          echo "===== game.h after sed replace ====="
-          cat module/src/main/cpp/game.h
-          echo "===== build.gradle ====="
-          cat module/build.gradle
 
       - name: Build Module
         run: |
