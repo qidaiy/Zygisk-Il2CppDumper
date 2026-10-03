@@ -44,12 +44,11 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+          cache: gradle # 开启缓存加速
 
       - name: Optimize gradle config & mirror
         run: |
-          # 仅替换mavenCentral为阿里云，保留google官方源下载插件
           sed -i 's/mavenCentral()/maven { url "https:\/\/maven.aliyun.com\/repository\/central" }/g' build.gradle
-          # 单行追加配置，避免多行EOF语法坑
           echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> gradle.properties
           echo "org.gradle.parallel=true" >> gradle.properties
           echo "systemProp.org.gradle.internal.http.connectionTimeout=120000" >> gradle.properties
@@ -58,7 +57,7 @@ jobs:
 
       - name: Modify package name
         run: |
-          sed -i "s/com.game.packagename/${{ github.event.inputs.package_name }}/g" module/src/main/cpp/game.h
+          sed -i "s|com.game.packagename|${{ github.event.inputs.package_name }}|g" module/src/main/cpp/game.h
 
       - name: Build Module
         run: |
