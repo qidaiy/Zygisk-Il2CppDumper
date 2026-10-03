@@ -45,18 +45,14 @@ jobs:
           distribution: temurin
           java-version: 11
 
-      - name: Optimize gradle config & mirror
+      - name: Replace maven repos with aliyun mirror (speed up)
         run: |
-          # 仅替换mavenCentral为阿里云，保留google官方源下载插件
+          # 替换根build.gradle仓库为阿里云镜像
+          sed -i 's/google()/maven { url "https:\/\/maven.aliyun.com\/repository\/google" }/g' build.gradle
           sed -i 's/mavenCentral()/maven { url "https:\/\/maven.aliyun.com\/repository\/central" }/g' build.gradle
-          # Gradle网络超时、重试、内存配置
-          cat >> gradle.properties << EOF
-org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
-org.gradle.parallel=true
-systemProp.org.gradle.internal.http.connectionTimeout=120000
-systemProp.org.gradle.internal.http.socketTimeout=120000
-android.overridePathCheck=true
-EOF
+          # gradle优化：增加内存、开启并行
+          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
 
       - name: Modify package name
         run: |
@@ -65,7 +61,7 @@ EOF
       - name: Build Module
         run: |
           chmod +x ./gradlew
-          ./gradlew :module:assembleRelease --stacktrace --info --no-daemon
+          ./gradlew :module:assembleRelease --stacktrace --info
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
