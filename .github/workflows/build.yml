@@ -30,16 +30,17 @@ jobs:
           mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
           echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
 
-      - name: Install CMake 3.18.1 & NDK & Android Platform
+      - name: Install CMake 3.18.1 & NDK24 & Android Platform
         run: |
           yes | sdkmanager --licenses
           sdkmanager --install "cmake;3.18.1"
-          sdkmanager --install "ndk;25.2.9519653"
+          sdkmanager --install "ndk;24.0.8215888"
           sdkmanager --install "platforms;android-33"
 
-      - name: Check source files
+      - name: Modify package name and Check source files
         run: |
-          echo "===== game.h ====="
+          sed -i "s/com.game.packagename/${{ github.event.inputs.package_name }}/g" module/src/main/cpp/game.h
+          echo "===== game.h after sed replace ====="
           cat module/src/main/cpp/game.h
           echo "===== build.gradle ====="
           cat module/build.gradle
@@ -47,11 +48,10 @@ jobs:
       - name: Build Module
         run: |
           chmod +x ./gradlew
-          sed -i "s/com.game.packagename/${{ github.event.inputs.package_name }}/g" module/src/main/cpp/game.h
           ./gradlew :module:assembleRelease --stacktrace --info
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zygisk-il2cppdumper
+          name: zygisk-il2cppdumper-module
           path: out/magisk_module_release/
