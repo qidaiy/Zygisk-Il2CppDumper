@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk # 增加 ANDROID_HOME
     steps:
       - uses: actions/checkout@v4
 
@@ -44,7 +45,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-          cache: gradle # 开启缓存加速
+          cache: gradle
 
       - name: Optimize gradle config & mirror
         run: |
@@ -58,6 +59,11 @@ jobs:
       - name: Modify package name
         run: |
           sed -i "s|com.game.packagename|${{ github.event.inputs.package_name }}|g" module/src/main/cpp/game.h
+
+      # 【新增】生成 local.properties 指明 SDK 路径
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=${{ github.workspace }}/android-sdk" > local.properties
 
       - name: Build Module
         run: |
