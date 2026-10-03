@@ -45,6 +45,15 @@ jobs:
           distribution: temurin
           java-version: 11
 
+      - name: Replace maven repos with aliyun mirror (speed up)
+        run: |
+          # 替换根build.gradle仓库为阿里云镜像
+          sed -i 's/google()/maven { url "https:\/\/maven.aliyun.com\/repository\/google" }/g' build.gradle
+          sed -i 's/mavenCentral()/maven { url "https:\/\/maven.aliyun.com\/repository\/central" }/g' build.gradle
+          # gradle优化：增加内存、开启并行
+          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
+
       - name: Modify package name
         run: |
           sed -i "s/com.game.packagename/${{ github.event.inputs.package_name }}/g" module/src/main/cpp/game.h
